@@ -5,7 +5,7 @@ require 'gooddata_connectors_base/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "gooddata_connectors_base"
-  spec.version       = GoodDataConnectorsBase::VERSION
+  spec.version       = GoodData::Connectors::Base::VERSION
   spec.authors       = ["Adrian Toman"]
   spec.email         = ["adrian.toman@gooddata.com"]
   spec.description   = %q{This is base gem, used for defining connectors interface}

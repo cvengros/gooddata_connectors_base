@@ -1,9 +1,10 @@
 module GoodData
   module Connectors
-    module Downloader
+    module Base
       class BaseDownloader
 
         attr_accessor :metadata,:configuration
+        attr_reader :data_directory
 
         def initialize(metadata, params)
           @metadata = metadata
@@ -51,7 +52,11 @@ module GoodData
           downloaded_data = clean_up(downloaded_data) unless @params['skip_cleanup']
 
           downloaded_data = backup(downloaded_data) unless @params['skip_backup']
-          return downloaded_data
+          return {
+            'local_files' => {
+              @type => downloaded_data
+            }
+          }
         end
 
         def clean_up(downloaded_data)
