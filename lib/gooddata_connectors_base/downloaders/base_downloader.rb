@@ -1,3 +1,5 @@
+require 'json'
+
 module GoodData
   module Connectors
     module Base
@@ -24,9 +26,9 @@ module GoodData
         def backup(meta)
           @logger.info 'send a backup list of files to backup'
           files = meta['objects'].values.reduce([]){|memo, v| memo + v['filenames']}
+          files.push(meta['metadata_filename'])
 
           bucket_name = @params['s3_backup_bucket_name']
-
           s3 = AWS::S3.new(
             :access_key_id => @params['aws_access_key_id'],
             :secret_access_key => @params['aws_secret_access_key']
@@ -47,16 +49,23 @@ module GoodData
         def run
           entity_metadata = get_field_metadata
           downloaded_data = download(entity_metadata)
-          # TODO download metadata using a subclass-defined function
-          # TODO store metadata
+
           downloaded_data = clean_up(downloaded_data) unless @params['skip_cleanup']
 
-          downloaded_data = backup(downloaded_data) unless @params['skip_backup']
-          return {
+          # return metadata, save it to file
+          metadata_file = File.absolute_path(File.join(@data_directory, 'metadata.json'))
+          downloaded_data['metadata_filename'] = metadata_file
+
+          ret = {
             'local_files' => {
               @type => downloaded_data
             }
           }
+          IO.write(metadata_file, JSON.pretty_generate(ret))
+
+          downloaded_data = backup(downloaded_data) unless @params['skip_backup']
+
+          ret
         end
 
         def clean_up(downloaded_data)
